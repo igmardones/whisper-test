@@ -3,6 +3,7 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
 import OpenAI from "openai";
+import { checkAuth } from "./auth-actions";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -30,7 +31,15 @@ async function loadInitialPrompt() {
 }
 
 export async function transcribeAudio(formData) {
+  const startTime = Date.now();
+
   try {
+    // Verificar autenticación antes de procesar
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) {
+      return { error: "No autorizado. Iniciá sesión para usar el dictáfono." };
+    }
+
     const audioFile = formData.get("audio");
 
     if (!audioFile) {
@@ -52,6 +61,15 @@ export async function transcribeAudio(formData) {
       type: "audio/webm",
     });
 
+    // Calcular duración aproximada del audio (estimación)
+    const audioDurationSeconds = Math.round(buffer.length / 16000); // ~16KB/s para WebM
+    const estimatedCost = (audioDurationSeconds / 60) * 0.006;
+
+    console.log(`🎙️ Whisper API Request iniciada:`);
+    console.log(`   - Duración estimada: ${audioDurationSeconds}s`);
+    console.log(`   - Costo estimado: $${estimatedCost.toFixed(6)} USD`);
+    console.log(`   - Tamaño del archivo: ${(buffer.length / 1024 / 1024).toFixed(2)} MB`);
+
     // Llamar a la API de Whisper de OpenAI
     const transcription = await openai.audio.transcriptions.create({
       file: file,
@@ -61,11 +79,21 @@ export async function transcribeAudio(formData) {
       response_format: "text",
     });
 
+    const endTime = Date.now();
+    const processingTime = (endTime - startTime) / 1000;
+
+    console.log(`✅ Whisper API Response recibida:`);
+    console.log(`   - Tiempo de procesamiento: ${processingTime.toFixed(2)}s`);
+    console.log(`   - Texto transcrito: ${transcription.length} caracteres`);
+    console.log(`   - Costo real: $${estimatedCost.toFixed(6)} USD`);
+    console.log(`   - Timestamp: ${new Date().toISOString()}`);
+
     return { text: transcription.trim() };
   } catch (error) {
-    console.error("Error en transcripción:", error);
+    console.error("❌ Error en transcripción:", error);
 
     if (error?.status === 401) {
+      console.error("   - API key inválida o faltante");
       return {
         error:
           "API key inválida. Verificá tu OPENAI_API_KEY en .env.local",
@@ -73,12 +101,14 @@ export async function transcribeAudio(formData) {
     }
 
     if (error?.status === 429) {
+      console.error("   - Límite de uso alcanzado (quota insuficiente)");
       return {
         error:
           "Límite de uso alcanzado. Verificá tu plan y créditos en platform.openai.com",
       };
     }
 
+    console.error(`   - Error message: ${error.message}`);
     return {
       error:
         error.message || "Error al transcribir el audio. Intentá de nuevo.",

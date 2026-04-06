@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback } from "react";
 import { transcribeAudio } from "./actions";
+import { logout } from "./auth-actions";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -13,7 +14,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Mic, Square, Loader2, Copy, Trash2 } from "lucide-react";
+import { Mic, Square, Loader2, Copy, Trash2, LogOut } from "lucide-react";
 
 export default function DictationClient() {
   const [isRecording, setIsRecording] = useState(false);
@@ -142,14 +143,29 @@ export default function DictationClient() {
   return (
     <div className="container mx-auto max-w-4xl px-4 py-8">
       {/* Header */}
-      <div className="mb-8 text-center">
-        <h1 className="text-3xl font-bold tracking-tight">
-          Dictado de Macroscopía
-        </h1>
-        <p className="mt-2 text-muted-foreground">
-          Dictá la macroscopía por micrófono y Whisper la transcribe con
-          ortografía correcta
-        </p>
+      <div className="mb-8">
+        <div className="flex justify-end">
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={async () => {
+              await logout();
+              window.location.reload();
+            }}
+          >
+            <LogOut className="mr-1.5 h-3.5 w-3.5" />
+            Salir
+          </Button>
+        </div>
+        <div className="text-center">
+          <h1 className="text-3xl font-bold tracking-tight">
+            Dictado de Macroscopía
+          </h1>
+          <p className="mt-2 text-muted-foreground">
+            Dictá la macroscopía por micrófono y Whisper la transcribe con
+            ortografía correcta
+          </p>
+        </div>
       </div>
 
       {/* Recording Controls */}
