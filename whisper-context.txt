@@ -1,40 +1,25 @@
-Macroscopía anatomopatológica. Dictado médico con puntuación correcta.
-Cuando el patólogo dice "coma" se escribe ",". Cuando dice "punto" se escribe ".".
+Macroscopía y diagnóstico anatomopatológico. Dictado médico con puntuación correcta. Cuando el patólogo dice "coma" se escribe ",". Cuando dice "punto" se escribe ".".
+Macroscopía: formalina, vesícula biliar, conducto cístico, serosa, mucosa, lumen, cálculos, ganglio cístico, parduzca, blanquecina, grisácea, amarillenta, congestiva, aterciopelada, desgarrada, mamelonada, nódulo, fragmentos, margen quirúrgico, margen profundo, sección quirúrgica, cassette, tejido celular subcutáneo, endometrio, miometrio, cérvix, apéndice cecal, exudado fibrinopurulento, tumorectomía, losanjo, tuba uterina fimbriada, quístico multilocular, papilomatosa.
+Diagnóstico: carcinoma invasor, adenocarcinoma, carcinoma ductal, carcinoma de células escamosas, células en anillo de sello, CIN-1, lesión intraepitelial escamosa, virus papiloma humano, Nottingham, Borrmann, linitis plástica, invasión angiolinfática, invasión perineural, extensión extracapsular, linfonodos, linfonodos centinela, macrometástasis, micrometástasis, metaplasia escamosa, metaplasia intestinal, metaplasia tubaria, cervicitis, colecistitis, colelitiasis, colesterolosis, histerectomía radical, gastrectomía, disección ganglionar, márgenes comprometidos, Whartin-Starry.
 
-Ejemplo 1: Formalina, vesícula biliar focalmente abierta, de 9 cm de longitud, 0.5 cm de diámetro, conducto cístico de 0.7 cm de diámetro. Serosa lisa congestiva blanquecina y grisácea. Pared de hasta 0.3 cm de grosor. Lumen con múltiples cálculos de entre 1 y 2.3 cm. Mucosa aterciopelada, desgarrada, amarillenta, parduzca. Ganglio cístico de 0.5 x 0.3 cm.
+--- A PARTIR DE AQUÍ ES REFERENCIA (no se envía a Whisper, supera el límite de 1000 caracteres) ---
 
-Ejemplo 2: Formalina, piel y tejido celular subcutáneo de 3.5 x 2 x 1.2 cm. Superficie externa con elipse de piel de 2.5 x 1 cm, con lesión sobreelevada, mamelonada, parduzca, de 0.8 x 0.7 cm. Al corte, lesión blanquecina, firme, de límites netos, que dista 0.3 cm del margen profundo.
+Ejemplo macroscopía 1: Formalina, vesícula biliar focalmente abierta, de 9 cm de longitud, 0.5 cm de diámetro, conducto cístico de 0.7 cm de diámetro. Serosa lisa congestiva blanquecina y grisácea. Pared de hasta 0.3 cm de grosor. Lumen con múltiples cálculos de entre 1 y 2.3 cm. Mucosa aterciopelada, desgarrada, amarillenta, parduzca. Ganglio cístico de 0.5 x 0.3 cm.
 
-Ejemplo 3: Formalina, apéndice cecal de 7 cm de longitud, 0.8 cm de diámetro. Serosa congestiva, opaca, con exudado fibrinopurulento en tercio distal. Pared de hasta 0.4 cm de grosor. Lumen con material mucoide. Base de sección quirúrgica a 0.2 cm del área inflamada.
+Ejemplo macroscopía 2: Formalina, piel y tejido celular subcutáneo de 3.5 x 2 x 1.2 cm. Superficie externa con elipse de piel de 2.5 x 1 cm, con lesión sobreelevada, mamelonada, parduzca, de 0.8 x 0.7 cm. Al corte, lesión blanquecina, firme, de límites netos, que dista 0.3 cm del margen profundo.
 
-Ejemplo 4: Formalina, útero con cérvix de 8 x 6 x 4 cm, con mioma subseroso de 3 cm. Endometrio de 0.2 cm de grosor, superficie lisa. Miometrio de hasta 2 cm de grosor. Cérvix de 2.5 cm de longitud, orificio cervical externo circular, mucosa endocervical lisa, parduzca.
+Ejemplo macroscopía 3: Formalina, apéndice cecal de 7 cm de longitud, 0.8 cm de diámetro. Serosa congestiva, opaca, con exudado fibrinopurulento en tercio distal. Pared de hasta 0.4 cm de grosor. Lumen con material mucoide. Base de sección quirúrgica a 0.2 cm del área inflamada.
 
-Ejemplo 5: Formalina, fragmentos irregulares de tejido pardo grisáceo, blandos, que en conjunto miden 2 x 1.5 x 0.5 cm. Se incluyen en su totalidad en un cassette.
+Ejemplo macroscopía 4: Formalina, útero con cérvix de 8 x 6 x 4 cm, con mioma subseroso de 3 cm. Endometrio de 0.2 cm de grosor, superficie lisa. Miometrio de hasta 2 cm de grosor. Cérvix de 2.5 cm de longitud, orificio cervical externo circular, mucosa endocervical lisa, parduzca.
 
-Ejemplo 6: En formalina, vesícula biliar focalmente abierta, de 9 cm de longitud y 2.5 cm de diámetro. Conducto cístico de 0.7 cm de diámetro. Serosa lisa, congestiva, blanquecina y grisácea. Pared de hasta 0.3 cm de grosor. Lumen con múltiples cálculos de entre 1 y 2.3 cm. Mucosa trabecular desgarrada amarillenta pardusca. Ganglio cístico de 0.5 x 0.3 cm. (dc)
+Ejemplo macroscopía 5: Nódulo mama izquierda: Tumorectomía mamaria que pesa 10 g y mide 3.4 cm de lateral a medial, 2.1 cm de superior a inferior y 3.2 cm de superficial a profundo. Incluye losanjo de piel de 2.8 x 0.9 cm sin lesiones, no incluye complejo areola-pezón. Al corte se identifica lesión tumoral blanquecina, irregular de 1 x 0.8 x 0.7 cm.
 
- 
+Ejemplo diagnóstico 1: Colecistitis crónica, colelitiasis, ganglio cístico con cambios reactivos.
 
-Ejemplo 7: Nódulo mama izquierda : Tumorectomía mamaria que pesa 10 g y mide 3.4 cm de lateral a medial, 2.1 cm de superior a inferior y 3.2 cm de superficial a profundo. Incluye losanjo de piel de 2.8 x 0.9 cm sin lesiones, no incluye complejo areola-pezón. Al corte se identifica lesión tumoral blanquecina, irregular de 1 x 0.8 x 0.7 cm. 
+Ejemplo diagnóstico 2: Carcinoma mamario invasor de tipo no especial (ductal, NOS) Grado 3 Nottingham. Márgenes no comprometidos. Invasión angiolinfática presente. Linfonodos centinela 4/4 comprometidos, macrometástasis.
 
-Ejemplo 8: Ganglio centinela axilar izquierdo : Dos fragmentos amarillentos, irregulares de 1.8 x 1.5 x 1 cm y 2 x 1.6 x 0.8 cm. (cfl).
+Ejemplo diagnóstico 3: Histerectomía radical. Carcinoma de células escamosas no queratinizante, moderadamente diferenciado. Invasión estromal 5 mm. Invasión linfovascular presente. 13 linfonodos negativos.
 
- 
+Ejemplo diagnóstico 4: Gastrectomía total. Adenocarcinoma pobremente diferenciado de células en anillo de sello. Borrmann IV linitis plástica. Invasión angiolinfática y perineural presente. 13/39 ganglios comprometidos. Extensión extracapsular presente. pT4a N3.
 
-Ejemplo 9: Anexo izquierdo (Enviado para Biopsia Intraoperatoria) : Masa anexial de 16 x 11.5 x 11 cm, pesa 1032 g. Superficie externa pardo-blanquecina con aumento de la trama vascular, indemne. Abierto, quístico multilocular con contenido líquido amarillento y gelatinoso en algunas cavidades. Superficie interna blanquecina extensamente papilomatosa. Adosada a superficie externa, segmento distal de tuba uterina fimbriada de 2 x 0.7 cm sin lesiones macroscópicas. Además nódulos blanco-parduzcos de hasta 1.5 cm, adyacentes al hilio ovárico. 
-
- 
-
-Ejemplo 10: Diagnóstico Intraoperatorio : Carcinoma seroso de alto grado con compromiso de la superficie ovárica. 
-
- 
-
-Ejemplo 11: Nódulo peritoneal periumbilical : Fragmento blanco-amarillento, irregular, parcialmente revestido por serosa, la superficie blanquecina es nodular y al corte se corresponde con nódulo sólido, blanquecino de 2 cm de diámetro máximo. 
-
-Ejemplo 12: Utero y anexo derecho : Utero de 10.5 x 5.5 x 4.5 cm. Incluye cérvix de 4.4 x 3 cm. Exocérvix blanquecino sin lesiones, canal cervical permeable. Cavidad endometrial de 5 x 1.5 cm, endometrio de 0.2 cm sin lesiones, miometrio de 2 cm de espesor. En una de sus caras laterales lesión quística de 3 cm con escaso contenido hemático y necrótico adherido. Serosa uterina parda con adherencias y múltiples nódulos pardo-amarillentos y grisáceos, el mayor mide 3 cm. Adherido a segmento uterino bajo, masa tumoral de 10.5 cm de eje mayor con superficie amarillo-grisácea, mamelonada con áreas de hemorragia. Al corte sólido-quístico con extensa necrosis. 
-
-En continuidad, tuba uterina 3.6 cm de longitud y 0.4 cm de diámetro, fimbriada con superficie parda y lumen virtual. Adyacente a ésta, nódulo amarillento de aspecto tumoral que mide 2.8 cm de eje mayor, podría corresponder a ovario.
-
-El espécimen en conjunto pesa 411 g.
-
-Términos frecuentes: formalina, formol, vesícula biliar, conducto cístico, serosa, mucosa, muscular, submucosa, adventicia, lumen, pólipo, nódulo, ganglio linfático, ganglio cístico, margen quirúrgico, margen profundo, margen lateral, consistencia firme, blanda, elástica, pétrea, superficie lisa, irregular, lobulada, mamelonada, granular, aterciopelada, coloración blanquecina, parduzca, amarillenta, grisácea, hemorrágica, necrótica, congestiva, desgarrada, exudado fibrinopurulento, material mucoide, cálculos, fragmentos, cassette, incluir en su totalidad, sección quirúrgica, elipse de piel, tejido celular subcutáneo, tejido adiposo, mioma, endometrio, miometrio, cérvix, apéndice cecal.
+Ejemplo diagnóstico 5: Lesión intraepitelial escamosa de bajo grado CIN-1 con signos de infección por virus papiloma humano. Cervicitis crónica activa moderada inespecífica con formación de folículos linfoides.

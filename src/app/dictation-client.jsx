@@ -20,6 +20,8 @@ export default function DictationClient() {
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [rawTranscription, setRawTranscription] = useState("");
   const [recordingTime, setRecordingTime] = useState(0);
+  const [totalSeconds, setTotalSeconds] = useState(0);
+  const [recordingCount, setRecordingCount] = useState(0);
 
   const mediaRecorderRef = useRef(null);
   const chunksRef = useRef([]);
@@ -83,13 +85,15 @@ export default function DictationClient() {
     if (mediaRecorderRef.current && isRecording) {
       mediaRecorderRef.current.stop();
       setIsRecording(false);
+      setTotalSeconds((prev) => prev + recordingTime);
+      setRecordingCount((prev) => prev + 1);
 
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
     }
-  }, [isRecording]);
+  }, [isRecording, recordingTime]);
 
   const handleTranscription = async (audioBlob) => {
     setIsTranscribing(true);
@@ -218,7 +222,7 @@ export default function DictationClient() {
             <div>
               <CardTitle>Transcripción</CardTitle>
               <CardDescription>
-                Texto transcrito por Whisper local. Podés editarlo manualmente.
+                Texto transcrito por Whisper API. Podés editarlo manualmente.
               </CardDescription>
             </div>
             <div className="flex gap-2">
@@ -254,6 +258,27 @@ export default function DictationClient() {
           />
         </CardContent>
       </Card>
+
+      {/* Usage Stats */}
+      {recordingCount > 0 && (
+        <Card className="mb-6">
+          <CardContent className="pt-6">
+            <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
+              <div className="flex items-center gap-4">
+                <span className="text-muted-foreground">
+                  Grabaciones: <strong className="text-foreground">{recordingCount}</strong>
+                </span>
+                <span className="text-muted-foreground">
+                  Tiempo total: <strong className="text-foreground">{formatTime(totalSeconds)}</strong>
+                </span>
+              </div>
+              <span className="text-muted-foreground">
+                Costo estimado: <strong className="text-foreground">${(totalSeconds / 60 * 0.006).toFixed(4)} USD</strong>
+              </span>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
     </div>
   );
