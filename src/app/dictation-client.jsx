@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useRef, useCallback, useEffect } from "react";
 import { transcribeAudio } from "./actions";
 import { logout } from "./auth-actions";
 import { Button } from "@/components/ui/button";
@@ -14,19 +14,50 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Mic, Square, Loader2, Copy, Trash2, LogOut } from "lucide-react";
+import { Mic, Square, Loader2, Copy, Trash2, LogOut, Pause, Play, X, AlertTriangle } from "lucide-react";
+
+// Límites configurables en el cliente
+const MAX_RECORDING_SECONDS = 300; // 5 minutos máximo por grabación
+const DAILY_LIMIT_SECONDS = 3600;  // 60 minutos diarios (= $0.36 USD)
+const WARN_AT_PERCENT = 80;        // Advertir al 80% del límite
+
+function getDailyUsage() {
+  try {
+    const stored = JSON.parse(localStorage.getItem("whisper-daily-usage") || "{}");
+    const today = new Date().toISOString().slice(0, 10);
+    if (stored.date !== today) return { date: today, seconds: 0, count: 0 };
+    return stored;
+  } catch {
+    return { date: new Date().toISOString().slice(0, 10), seconds: 0, count: 0 };
+  }
+}
+
+function saveDailyUsage(usage) {
+  localStorage.setItem("whisper-daily-usage", JSON.stringify(usage));
+}
 
 export default function DictationClient() {
   const [isRecording, setIsRecording] = useState(false);
+  const [isPaused, setIsPaused] = useState(false);
   const [isTranscribing, setIsTranscribing] = useState(false);
   const [rawTranscription, setRawTranscription] = useState("");
   const [recordingTime, setRecordingTime] = useState(0);
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [recordingCount, setRecordingCount] = useState(0);
+  const [dailyUsage, setDailyUsage] = useState({ date: "", seconds: 0, count: 0 });
 
   const mediaRecorderRef = useRef(null);
+  const streamRef = useRef(null);
   const chunksRef = useRef([]);
   const timerRef = useRef(null);
+  const shouldTranscribeRef = useRef(true);
+
+  useEffect(() => {
+    const usage = getDailyUsage();
+    setDailyUsage(usage);
+    setTotalSeconds(usage.seconds);
+    setRecordingCount(usage.count);
+  }, []);
 
   const formatTime = (seconds) => {
     const mins = Math.floor(seconds / 60);
@@ -34,9 +65,19 @@ export default function DictationClient() {
     return `${mins.toString().padStart(2, "0")}:${secs.toString().padStart(2, "0")}`;
   };
 
+  const dailyPercent = Math.min(100, (dailyUsage.seconds / DAILY_LIMIT_SECONDS) * 100);
+  const isOverLimit = dailyUsage.seconds >= DAILY_LIMIT_SECONDS;
+  const isNearLimit = dailyPercent >= WARN_AT_PERCENT;
+
   const startRecording = useCallback(async () => {
+    if (isOverLimit) {
+      toast.error("Límite diario alcanzado. Intentá mañana.");
+      return;
+    }
+
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      streamRef.current = stream;
       const mediaRecorder = new MediaRecorder(stream, {
         mimeType: MediaRecorder.isTypeSupported("audio/webm;codecs=opus")
           ? "audio/webm;codecs=opus"
@@ -45,6 +86,7 @@ export default function DictationClient() {
 
       mediaRecorderRef.current = mediaRecorder;
       chunksRef.current = [];
+      shouldTranscribeRef.current = true;
 
       mediaRecorder.ondataavailable = (e) => {
         if (e.data.size > 0) {
@@ -54,6 +96,12 @@ export default function DictationClient() {
 
       mediaRecorder.onstop = async () => {
         stream.getTracks().forEach((track) => track.stop());
+        streamRef.current = null;
+
+        if (!shouldTranscribeRef.current) {
+          toast.info("Grabación descartada.");
+          return;
+        }
 
         const audioBlob = new Blob(chunksRef.current, { type: "audio/webm" });
 
@@ -67,10 +115,18 @@ export default function DictationClient() {
 
       mediaRecorder.start(1000);
       setIsRecording(true);
+      setIsPaused(false);
       setRecordingTime(0);
 
       timerRef.current = setInterval(() => {
-        setRecordingTime((prev) => prev + 1);
+        setRecordingTime((prev) => {
+          const next = prev + 1;
+          if (next >= MAX_RECORDING_SECONDS) {
+            toast.warning(`Límite de ${MAX_RECORDING_SECONDS / 60} min por grabación alcanzado. Finalizando...`);
+            finishRecording();
+          }
+          return next;
+        });
       }, 1000);
 
       toast.success("Grabación iniciada");
@@ -80,21 +136,75 @@ export default function DictationClient() {
         "No se pudo acceder al micrófono. Verificá los permisos del navegador."
       );
     }
-  }, []);
+  }, [isOverLimit]);
 
-  const stopRecording = useCallback(() => {
+  const pauseRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording && !isPaused) {
+      mediaRecorderRef.current.pause();
+      setIsPaused(true);
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+      toast.info("Grabación en pausa");
+    }
+  }, [isRecording, isPaused]);
+
+  const resumeRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording && isPaused) {
+      mediaRecorderRef.current.resume();
+      setIsPaused(false);
+      timerRef.current = setInterval(() => {
+        setRecordingTime((prev) => {
+          const next = prev + 1;
+          if (next >= MAX_RECORDING_SECONDS) {
+            toast.warning(`Límite de ${MAX_RECORDING_SECONDS / 60} min por grabación alcanzado. Finalizando...`);
+            finishRecording();
+          }
+          return next;
+        });
+      }, 1000);
+      toast.success("Grabación reanudada");
+    }
+  }, [isRecording, isPaused]);
+
+  const finishRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording) {
+      shouldTranscribeRef.current = true;
       mediaRecorderRef.current.stop();
       setIsRecording(false);
-      setTotalSeconds((prev) => prev + recordingTime);
-      setRecordingCount((prev) => prev + 1);
+      setIsPaused(false);
+
+      const newUsage = {
+        ...dailyUsage,
+        seconds: dailyUsage.seconds + recordingTime,
+        count: dailyUsage.count + 1,
+      };
+      setDailyUsage(newUsage);
+      setTotalSeconds(newUsage.seconds);
+      setRecordingCount(newUsage.count);
+      saveDailyUsage(newUsage);
 
       if (timerRef.current) {
         clearInterval(timerRef.current);
         timerRef.current = null;
       }
     }
-  }, [isRecording, recordingTime]);
+  }, [isRecording, recordingTime, dailyUsage]);
+
+  const discardRecording = useCallback(() => {
+    if (mediaRecorderRef.current && isRecording) {
+      shouldTranscribeRef.current = false;
+      mediaRecorderRef.current.stop();
+      setIsRecording(false);
+      setIsPaused(false);
+
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+  }, [isRecording]);
 
   const handleTranscription = async (audioBlob) => {
     setIsTranscribing(true);
@@ -168,6 +278,41 @@ export default function DictationClient() {
         </div>
       </div>
 
+      {/* Daily Usage Bar */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="space-y-2">
+            <div className="flex items-center justify-between text-sm">
+              <span className="text-muted-foreground">
+                Uso diario: <strong className="text-foreground">{formatTime(dailyUsage.seconds)}</strong> / {formatTime(DAILY_LIMIT_SECONDS)}
+              </span>
+              <span className="text-muted-foreground">
+                {dailyUsage.count} grabaciones — <strong className="text-foreground">${(dailyUsage.seconds / 60 * 0.006).toFixed(4)} USD</strong>
+              </span>
+            </div>
+            <div className="h-2 w-full rounded-full bg-secondary">
+              <div
+                className={`h-2 rounded-full transition-all ${isOverLimit ? "bg-destructive" : isNearLimit ? "bg-yellow-500" : "bg-primary"
+                  }`}
+                style={{ width: `${dailyPercent}%` }}
+              />
+            </div>
+            {isNearLimit && !isOverLimit && (
+              <p className="flex items-center gap-1.5 text-xs text-yellow-600">
+                <AlertTriangle className="h-3 w-3" />
+                Estás cerca del límite diario ({Math.round(dailyPercent)}%)
+              </p>
+            )}
+            {isOverLimit && (
+              <p className="flex items-center gap-1.5 text-xs text-destructive">
+                <AlertTriangle className="h-3 w-3" />
+                Límite diario alcanzado. Se reinicia mañana.
+              </p>
+            )}
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Recording Controls */}
       <Card className="mb-6">
         <CardHeader>
@@ -176,19 +321,18 @@ export default function DictationClient() {
             Grabación de audio
           </CardTitle>
           <CardDescription>
-            Presioná el botón para comenzar a dictar. Podés grabar múltiples
-            veces y el texto se irá acumulando.
+            Presioná el botón para comenzar a dictar. Podés pausar, reanudar o descartar la grabación.
           </CardDescription>
         </CardHeader>
         <CardContent>
           <div className="flex flex-col items-center gap-4">
-            {/* Recording button */}
-            <div className="flex items-center gap-4">
+            {/* Recording buttons */}
+            <div className="flex items-center gap-3">
               {!isRecording ? (
                 <Button
                   size="lg"
                   onClick={startRecording}
-                  disabled={isTranscribing}
+                  disabled={isTranscribing || isOverLimit}
                   className="h-16 w-16 rounded-full"
                 >
                   {isTranscribing ? (
@@ -198,23 +342,67 @@ export default function DictationClient() {
                   )}
                 </Button>
               ) : (
-                <Button
-                  size="lg"
-                  variant="destructive"
-                  onClick={stopRecording}
-                  className="h-16 w-16 rounded-full animate-pulse"
-                >
-                  <Square className="h-6 w-6" />
-                </Button>
+                <>
+                  {/* Pause / Resume */}
+                  {!isPaused ? (
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      onClick={pauseRecording}
+                      className="h-14 w-14 rounded-full"
+                      title="Pausar"
+                    >
+                      <Pause className="h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      size="lg"
+                      variant="secondary"
+                      onClick={resumeRecording}
+                      className="h-14 w-14 rounded-full"
+                      title="Reanudar"
+                    >
+                      <Play className="h-5 w-5" />
+                    </Button>
+                  )}
+
+                  {/* Finish (send to transcribe) */}
+                  <Button
+                    size="lg"
+                    variant="default"
+                    onClick={finishRecording}
+                    className="h-16 w-16 rounded-full"
+                    title="Finalizar y transcribir"
+                  >
+                    <Square className="h-6 w-6" />
+                  </Button>
+
+                  {/* Discard */}
+                  <Button
+                    size="lg"
+                    variant="ghost"
+                    onClick={discardRecording}
+                    className="h-14 w-14 rounded-full text-muted-foreground hover:text-destructive"
+                    title="Descartar grabación"
+                  >
+                    <X className="h-5 w-5" />
+                  </Button>
+                </>
               )}
             </div>
 
             {/* Status indicators */}
-            <div className="flex items-center gap-3">
-              {isRecording && (
+            <div className="flex flex-col items-center gap-2">
+              {isRecording && !isPaused && (
                 <Badge variant="destructive" className="gap-1.5">
                   <span className="h-2 w-2 rounded-full bg-white animate-pulse" />
                   Grabando — {formatTime(recordingTime)}
+                </Badge>
+              )}
+              {isRecording && isPaused && (
+                <Badge variant="secondary" className="gap-1.5">
+                  <Pause className="h-3 w-3" />
+                  En pausa — {formatTime(recordingTime)}
                 </Badge>
               )}
               {isTranscribing && (
@@ -225,6 +413,11 @@ export default function DictationClient() {
               )}
               {!isRecording && !isTranscribing && (
                 <Badge variant="outline">Listo para grabar</Badge>
+              )}
+              {isRecording && (
+                <p className="text-xs text-muted-foreground">
+                  Máx. {MAX_RECORDING_SECONDS / 60} min por grabación — Restante: {formatTime(MAX_RECORDING_SECONDS - recordingTime)}
+                </p>
               )}
             </div>
           </div>
@@ -274,27 +467,6 @@ export default function DictationClient() {
           />
         </CardContent>
       </Card>
-
-      {/* Usage Stats */}
-      {recordingCount > 0 && (
-        <Card className="mb-6">
-          <CardContent className="pt-6">
-            <div className="flex flex-wrap items-center justify-between gap-4 text-sm">
-              <div className="flex items-center gap-4">
-                <span className="text-muted-foreground">
-                  Grabaciones: <strong className="text-foreground">{recordingCount}</strong>
-                </span>
-                <span className="text-muted-foreground">
-                  Tiempo total: <strong className="text-foreground">{formatTime(totalSeconds)}</strong>
-                </span>
-              </div>
-              <span className="text-muted-foreground">
-                Costo estimado: <strong className="text-foreground">${(totalSeconds / 60 * 0.006).toFixed(4)} USD</strong>
-              </span>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
     </div>
   );
