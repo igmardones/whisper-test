@@ -2,6 +2,7 @@
 
 import { useState, useRef, useCallback, useEffect } from "react";
 import { transcribeAudio } from "./actions";
+import { transcribeAudioLocal } from "./actions-local";
 import { logout } from "./auth-actions";
 import { Button } from "@/components/ui/button";
 import {
@@ -14,7 +15,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { toast } from "sonner";
-import { Mic, Square, Loader2, Copy, Trash2, LogOut, Pause, Play, X, AlertTriangle } from "lucide-react";
+import { Mic, Square, Loader2, Copy, Trash2, LogOut, Pause, Play, X, AlertTriangle, Cloud, Cpu } from "lucide-react";
 
 // Límites configurables en el cliente
 const MAX_RECORDING_SECONDS = 300; // 5 minutos máximo por grabación
@@ -45,6 +46,7 @@ export default function DictationClient() {
   const [totalSeconds, setTotalSeconds] = useState(0);
   const [recordingCount, setRecordingCount] = useState(0);
   const [dailyUsage, setDailyUsage] = useState({ date: "", seconds: 0, count: 0 });
+  const [transcriptionMode, setTranscriptionMode] = useState("api"); // "api" | "local"
 
   const mediaRecorderRef = useRef(null);
   const streamRef = useRef(null);
@@ -70,7 +72,7 @@ export default function DictationClient() {
   const isNearLimit = dailyPercent >= WARN_AT_PERCENT;
 
   const startRecording = useCallback(async () => {
-    if (isOverLimit) {
+    if (transcriptionMode === "api" && isOverLimit) {
       toast.error("Límite diario alcanzado. Intentá mañana.");
       return;
     }
@@ -136,7 +138,7 @@ export default function DictationClient() {
         "No se pudo acceder al micrófono. Verificá los permisos del navegador."
       );
     }
-  }, [isOverLimit]);
+  }, [isOverLimit, transcriptionMode]);
 
   const pauseRecording = useCallback(() => {
     if (mediaRecorderRef.current && isRecording && !isPaused) {
@@ -216,7 +218,9 @@ export default function DictationClient() {
       });
       formData.append("audio", audioFile);
 
-      const result = await transcribeAudio(formData);
+      const result = transcriptionMode === "local"
+        ? await transcribeAudioLocal(formData)
+        : await transcribeAudio(formData);
 
       if (result.error) {
         toast.error(result.error);
@@ -278,7 +282,53 @@ export default function DictationClient() {
         </div>
       </div>
 
+      {/* Mode Selector */}
+      <Card className="mb-6">
+        <CardContent className="pt-6">
+          <div className="flex items-center justify-between">
+            <span className="text-sm font-medium">Motor de transcripción</span>
+            <div className="flex items-center gap-1 rounded-lg bg-secondary p-1">
+              <button
+                onClick={() => setTranscriptionMode("api")}
+                disabled={isRecording || isTranscribing}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                  transcriptionMode === "api"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                } disabled:opacity-50`}
+              >
+                <Cloud className="h-3.5 w-3.5" />
+                API OpenAI
+              </button>
+              <button
+                onClick={() => setTranscriptionMode("local")}
+                disabled={isRecording || isTranscribing}
+                className={`flex items-center gap-1.5 rounded-md px-3 py-1.5 text-sm font-medium transition-all ${
+                  transcriptionMode === "local"
+                    ? "bg-background text-foreground shadow-sm"
+                    : "text-muted-foreground hover:text-foreground"
+                } disabled:opacity-50`}
+              >
+                <Cpu className="h-3.5 w-3.5" />
+                Faster Whisper
+              </button>
+            </div>
+          </div>
+          {transcriptionMode === "local" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Usando modelo local — sin costo, sin límites. Requiere que el servidor Python esté corriendo.
+            </p>
+          )}
+          {transcriptionMode === "api" && (
+            <p className="mt-2 text-xs text-muted-foreground">
+              Usando OpenAI Whisper API — $0.006/min, requiere API key.
+            </p>
+          )}
+        </CardContent>
+      </Card>
+
       {/* Daily Usage Bar */}
+      {transcriptionMode === "api" && (
       <Card className="mb-6">
         <CardContent className="pt-6">
           <div className="space-y-2">
@@ -312,6 +362,7 @@ export default function DictationClient() {
           </div>
         </CardContent>
       </Card>
+      )}
 
       {/* Recording Controls */}
       <Card className="mb-6">
@@ -332,7 +383,7 @@ export default function DictationClient() {
                 <Button
                   size="lg"
                   onClick={startRecording}
-                  disabled={isTranscribing || isOverLimit}
+                  disabled={isTranscribing || (transcriptionMode === "api" && isOverLimit)}
                   className="h-16 w-16 rounded-full"
                 >
                   {isTranscribing ? (
@@ -408,7 +459,7 @@ export default function DictationClient() {
               {isTranscribing && (
                 <Badge variant="secondary" className="gap-1.5">
                   <Loader2 className="h-3 w-3 animate-spin" />
-                  Transcribiendo con Whisper...
+                  Transcribiendo con {transcriptionMode === "local" ? "Faster Whisper" : "Whisper API"}...
                 </Badge>
               )}
               {!isRecording && !isTranscribing && (
@@ -431,7 +482,7 @@ export default function DictationClient() {
             <div>
               <CardTitle>Transcripción</CardTitle>
               <CardDescription>
-                Texto transcrito por Whisper API. Podés editarlo manualmente.
+                Texto transcrito por {transcriptionMode === "local" ? "Faster Whisper (local)" : "Whisper API"}. Podés editarlo manualmente.
               </CardDescription>
             </div>
             <div className="flex gap-2">
