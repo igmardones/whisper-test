@@ -248,6 +248,43 @@ export default function DictationClient() {
     }
   }, [isRecording]);
 
+  // Post-procesa el texto para reemplazar palabras habladas por símbolos
+  const postProcessTranscription = (text) => {
+    let processed = text;
+
+    // "por" entre números → "x" (ej: "10 por 5" → "10 x 5")
+    processed = processed.replace(/(\d)\s*por\s*(\d)/gi, '$1 x $2');
+
+    // "coma" → ","
+    processed = processed.replace(/\s*coma\s*/gi, ', ');
+
+    // "punto" al final o seguido de espacio → "."
+    processed = processed.replace(/\s*punto\s*/gi, '. ');
+
+    // "dos puntos" → ":"
+    processed = processed.replace(/\s*dos puntos\s*/gi, ': ');
+
+    // "punto y coma" → ";"
+    processed = processed.replace(/\s*punto y coma\s*/gi, '; ');
+
+    // "abrir paréntesis" → "("
+    processed = processed.replace(/\s*abrir paréntesis\s*/gi, ' (');
+
+    // "cerrar paréntesis" → ")"
+    processed = processed.replace(/\s*cerrar paréntesis\s*/gi, ') ');
+
+    // "guion" o "guión" → "-"
+    processed = processed.replace(/\s*gui[oó]n\s*/gi, '-');
+
+    // Limpiar espacios múltiples
+    processed = processed.replace(/\s+/g, ' ').trim();
+
+    // Capitalizar después de punto
+    processed = processed.replace(/\.\s+([a-záéíóúñ])/gi, (match, letter) => '. ' + letter.toUpperCase());
+
+    return processed;
+  };
+
   const handleTranscription = async (audioBlob) => {
     setIsTranscribing(true);
 
@@ -271,8 +308,9 @@ export default function DictationClient() {
         return;
       }
 
+      const processedText = postProcessTranscription(result.text);
       setRawTranscription((prev) =>
-        prev ? prev + "\n\n" + result.text : result.text
+        prev ? prev + "\n\n" + processedText : processedText
       );
       toast.success("Transcripción completada");
     } catch (err) {
