@@ -1,25 +1,20 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
+const inter = Inter({
+  variable: "--font-sans",
   subsets: ["latin"],
 });
 
 export const metadata = {
-  title: "Dictado de Macroscopía - Whisper",
-  description: "Dictado por voz de macroscopías con transcripción mediante OpenAI Whisper",
+  title: "Dictado de Macroscopía",
+  description: "Sistema de dictado por voz con transcripción inteligente para macroscopías anatomopatológicas",
 };
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="es">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="es" className="dark">
+      <body className={`${inter.variable} antialiased`}>
         {children}
       </body>
     </html>
